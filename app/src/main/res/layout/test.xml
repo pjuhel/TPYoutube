@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <ImageView
+        android:layout_width="185dp"
+        android:layout_height="185dp"
+        android:id="@+id/imageView2"
+        android:layout_gravity="center_horizontal"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="182dp"
+        android:layout_height="28dp"
+        android:text="title"
+        android:id="@+id/videoTitle"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/imageView2"
+        android:layout_alignLeft="@+id/imageView2"
+        android:layout_alignStart="@+id/imageView2" />
+
+    <TextView
+        android:layout_width="137dp"
+        android:layout_height="30dp"
+        android:text="Channel"
+        android:id="@+id/channelTitle"
+        android:layout_below="@+id/videoTitle"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="136dp"
+        android:layout_height="27dp"
+        android:text="publishedat"
+        android:id="@+id/publishedAt"
+        android:layout_below="@+id/videoTitle"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="282dp"
+        android:text="desc"
+        android:id="@+id/description"
+        android:layout_below="@+id/channelTitle"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>

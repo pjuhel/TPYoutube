@@ -2,87 +2,85 @@ package s8.fr.esilv.tpyoutube;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.KeyEvent;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
-import java.util.ArrayList;
+import s8.fr.esilv.tpyoutube.Objects.Videos;
+import s8.fr.esilv.tpyoutube.Objects.Youtube;
 
 public class MainActivity extends Activity {
 
-    private ArrayList<Video> videos;
-    private ListView listview;
-    private EditText editText;
-    private Handler handler;
+    private RecyclerView recyclerView;
+    private VideosAdapter videosAdapter;
+    private RecyclerView.LayoutManager layoutManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        editText = (EditText) findViewById(R.id.search_box);
-        listview = (ListView) findViewById(R.id.listView);
 
-        handler = new Handler();
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        videosAdapter = new VideosAdapter(new Videos());
+        recyclerView.setAdapter(videosAdapter);
 
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(actionId == EditorInfo.IME_ACTION_DONE){
-                    performRequest(v.getText().toString());
-                    return false;
-                }
-                return true;
+        Button search_button = (Button) findViewById(R.id.search_button);
+        search_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                initiateSearch();
             }
         });
-
-
     }
 
-
-    public void performRequest(final String keywords){
-        new Thread(){
-            public void run(){
-                YoutubeConnector youtubeConnector = new YoutubeConnector(MainActivity.this);
-                videos = youtubeConnector.search(keywords);
-                handler.post(new Runnable() {
+    public void initiateSearch(){
+        EditText editText = (EditText)findViewById(R.id.search_box);
+        String keywords = editText.getText().toString();
+        keywords = keywords.replace(' ', '+');
+        sendRequest(keywords);
+    }
+    public void sendRequest(String keywords){
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q="+keywords+"&key="+getString(R.string.youtubeKeyAPI);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
                     @Override
-                    public void run() {
-                        updateVideosFound();
+                    public void onResponse(String response) {
+                        retrieveSearch(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
                     }
                 });
-            }
-        }.start();
+        queue.add(stringRequest);
     }
 
-    private void updateVideosFound(){
-        ArrayAdapter<Video> adapter = new ArrayAdapter<Video>(getApplicationContext(), R.layout.video_layout, videos){
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                if(convertView == null){
-                    convertView = getLayoutInflater().inflate(R.layout.video_layout, parent, false);
-                }
-                ImageView thumbnail = (ImageView)convertView.findViewById(R.id.video_thumbnail);
-                TextView title = (TextView)convertView.findViewById(R.id.video_title);
-                TextView description = (TextView)convertView.findViewById(R.id.video_description);
-
-                Video searchResult = videos.get(position);
-
-                Picasso.with(getApplicationContext()).load(searchResult.getThumbnails()).into(thumbnail);
-                title.setText(searchResult.getTitle());
-                description.setText(searchResult.getDescription());
-                return convertView;
+    public void retrieveSearch(String response){
+        Gson gson = new Gson();
+        Youtube youtube = gson.fromJson(response, Youtube.class);
+        if(youtube != null){
+            Videos videos = new Videos();
+            for(int i = 0; i < youtube.getItems().size(); i++){
+                videos.add(youtube.getItems().get(i));
             }
-        };
-        listview.setAdapter(adapter);
+            videosAdapter.setVideos(videos);
+            videosAdapter.notifyDataSetChanged();
+        }
+
+
     }
 }
